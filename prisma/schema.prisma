@@ -9,23 +9,33 @@ generator client {
 }
 
 datasource db {
-  provider          = "postgresql"
-  url               = env("DATABASE_URL")
-  directUrl         = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id          String   @id @default(uuid())
-  firstName   String
-  lastName    String
-  email       String?  @unique
-  phone       String?  @unique
-  credits     Decimal  @default(0.0)
-  isDeleted   Boolean  @default(false)
-  isSuspended Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  username    String   @unique
-  dob         DateTime
-  password    String   // Don't forget to store hashed password
+  id           String         @id @default(uuid())
+  firstName    String
+  lastName     String
+  email        String?        @unique
+  phone        String?        @unique
+  credits      Decimal        @default(0.0)
+  isDeleted    Boolean        @default(false)
+  isSuspended  Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  username     String         @unique
+  dob          DateTime
+  password     String // Don't forget to store hashed password
+  RefreshToken RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) // UUID auto-generated
+  token     String // The actual refresh token
+  userId    String // Foreign key to the User model
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade) // Relation to User model
+  createdAt DateTime @default(now()) // Timestamp for when the token was created
+  expiresAt DateTime // Timestamp for when the token expires
 }
