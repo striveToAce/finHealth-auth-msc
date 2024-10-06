@@ -1,10 +1,14 @@
 import { Router } from 'express';
 import { signup, login, refreshToken } from '../controllers/authController';
+import { authMiddleware } from '../middlewares/authMiddleware';
+import { validateLogin, validateSignup } from '../validators/auth';
+import { validateRequest } from '../middlewares/validateRequest';
 
 const router = Router();
 
-router.post('/signup', signup);
-router.post('/login', login);
+router.post('/signup',validateSignup,validateRequest, signup);
+router.post('/login',validateLogin,validateRequest, login);
 router.post('/refreshToken',refreshToken)
+router.post('/profileInfo',authMiddleware,refreshToken)
 
 export { router as authRoutes };

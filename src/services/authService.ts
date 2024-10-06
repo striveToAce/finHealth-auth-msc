@@ -3,18 +3,30 @@ import { hashPassword, comparePassword } from "../utils/hashPassword";
 import {
   generateAccessToken,
   generateRefreshToken,
-} from '../utils/generateToken';
+} from "../utils/generateToken";
 import { PrismaClient, User } from "@prisma/client";
 import { getExpirationDate } from "../utils/functions";
 
+interface UserWithOptionalPassword extends Omit<User, "password"> {
+  password?: string;
+}
 
-interface UserWithOptionalPassword extends Omit<User, 'password'> {
-    password?: string;
-  }
+interface IUserOtherProfile {
+  username: string;
+  firstName: string;
+  lastName: string;
+  createdAt: Date;
+}
 
 const prisma = new PrismaClient();
 export class AuthService {
-  async signupService(username: string, password: string, firstName: string, lastName:string, dob:Date) {
+  async signupService(
+    username: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    dob: Date
+  ) {
     try {
       const hashedPassword = await hashPassword(password);
       const user = await prisma.user.create({
@@ -23,13 +35,13 @@ export class AuthService {
           password: hashedPassword,
           firstName,
           lastName,
-          dob
+          dob,
         },
       });
-      const modifiedUser = {...user} as UserWithOptionalPassword
-      delete modifiedUser.password
+      const modifiedUser = { ...user } as UserWithOptionalPassword;
+      delete modifiedUser.password;
 
-      return ({modifiedUser});
+      return { modifiedUser };
     } catch (error: any) {
       throw new Error("Error in signup: " + error?.message);
     }
@@ -66,6 +78,28 @@ export class AuthService {
     }
   }
 
+  async profileInfoService(username: string, isSelf: boolean) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { username, isDeleted: false, isSuspended: false },
+      });
+      if (!user) {
+        throw new Error("User not found!");
+      }
+      const modifiedUser = { ...user } as UserWithOptionalPassword;
+      delete modifiedUser.password;
+
+      const otherProfile: IUserOtherProfile = {
+        firstName: modifiedUser.firstName,
+        lastName: modifiedUser.lastName,
+        username: modifiedUser.username,
+        createdAt: modifiedUser.createdAt,
+      };
+      return isSelf ? modifiedUser : otherProfile;
+    } catch (err: any) {
+      throw new Error("Error in login: " + err?.message);
+    }
+  }
   async refreshTokenService(refreshToken: string) {
     try {
       const payload = jwt.verify(
@@ -73,7 +107,7 @@ export class AuthService {
         process.env.JWT_REFRESH_SECRET!
       ) as { userId: string };
       const newAccessToken = generateAccessToken(payload.userId);
-      return { accessToken: newAccessToken,refreshToken };
+      return { accessToken: newAccessToken, refreshToken };
     } catch (error: any) {
       throw new Error("Error in refresh token creation: " + error?.message);
     }
