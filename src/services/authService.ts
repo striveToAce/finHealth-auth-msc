@@ -13,6 +13,7 @@ interface UserWithOptionalPassword extends Omit<User, "password"> {
 }
 
 interface IUserOtherProfile {
+  id:string;
   username: string;
   firstName: string;
   lastName: string;
@@ -95,6 +96,7 @@ export class AuthService {
       delete modifiedUser.password;
 
       const otherProfile: IUserOtherProfile = {
+        id:modifiedUser.id,
         firstName: modifiedUser.firstName,
         lastName: modifiedUser.lastName,
         username: modifiedUser.username,
