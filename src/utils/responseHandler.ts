@@ -3,7 +3,7 @@ import { Response } from "express";
 export class ResponseHandler {
   static success(res: Response, data: any, message = "Success") {
     res.status(200).json({
-      status: "success",
+      status: true,
       message,
       data,
     });
@@ -18,7 +18,7 @@ export class ResponseHandler {
     console.error("Error:", error); // Log the error for debugging purposes
 
     res.status(statusCode).json({
-      status: "error",
+      status: false,
       message,
       error: typeof error === "string" ? error : error.message,
     });
@@ -31,7 +31,7 @@ export class ResponseHandler {
     statusCode = 400
   ) {
     res.status(statusCode).json({
-      status: "fail",
+      status: false,
       error,
       message,
     });

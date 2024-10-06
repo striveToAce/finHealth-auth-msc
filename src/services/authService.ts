@@ -6,6 +6,7 @@ import {
 } from "../utils/generateToken";
 import { PrismaClient, User } from "@prisma/client";
 import { getExpirationDate } from "../utils/functions";
+import moment from "moment";
 
 interface UserWithOptionalPassword extends Omit<User, "password"> {
   password?: string;
@@ -28,6 +29,7 @@ export class AuthService {
     dob: Date
   ) {
     try {
+      const modifiedDob = moment(dob).format()
       const hashedPassword = await hashPassword(password);
       const user = await prisma.user.create({
         data: {
@@ -35,7 +37,7 @@ export class AuthService {
           password: hashedPassword,
           firstName,
           lastName,
-          dob,
+          dob:modifiedDob,
         },
       });
       const modifiedUser = { ...user } as UserWithOptionalPassword;
@@ -72,7 +74,10 @@ export class AuthService {
         },
       });
 
-      return { accessToken, refreshToken };
+      const modifiedUser = { ...user } as UserWithOptionalPassword;
+      delete modifiedUser.password;
+
+      return { accessToken, refreshToken, user:modifiedUser };
     } catch (err: any) {
       throw new Error("Error in login: " + err?.message);
     }
