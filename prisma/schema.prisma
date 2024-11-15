@@ -29,6 +29,7 @@ model User {
   dob          DateTime
   password     String // Don't forget to store hashed password
   RefreshToken RefreshToken[]
+  transactions Transaction[]
 }
 
 model RefreshToken {
@@ -38,4 +39,27 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade) // Relation to User model
   createdAt DateTime @default(now()) // Timestamp for when the token was created
   expiresAt DateTime // Timestamp for when the token expires
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model Transaction {
+  id          String             @id @default(uuid())
+  title       String             
+  description String             
+  amount      Float              @default(0)
+  isCredit    Boolean
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  label       String             
+  status      TransactionStatus  @default(PENDING)
+  reason      String?            
+  userId      String
+  user        User               @relation(fields: [userId], references: [id],onDelete: Cascade)
+
+  @@index([userId]) // Optional: For optimized queries by userId
 }
