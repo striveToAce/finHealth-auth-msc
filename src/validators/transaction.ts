@@ -52,12 +52,6 @@ export const validateTransactionCreation = [
     .withMessage("Reason must be a string")
     .isLength({ max: 200 })
     .withMessage("Reason cannot exceed 200 characters"),
-
-  check("userId")
-    .notEmpty()
-    .withMessage("UserId is required")
-    .isUUID()
-    .withMessage("UserId must be a valid UUID"),
 ];
 
 export const validateTransactionListPayload = [
@@ -74,29 +68,28 @@ export const validateTransactionListPayload = [
     .withMessage("Page size is required")
     .isInt({ min: 1 })
     .withMessage("Page size must be a positive integer"),
-
   // Validate userId
-  check("userId")
-    .optional()
-    .withMessage("UserId is required")
-    .isUUID()
-    .withMessage("UserId must be a valid UUID"),
+  //   check("userId")
+  //     .optional()
+  //     .withMessage("UserId is required")
+  //     .isUUID()
+  //     .withMessage("UserId must be a valid UUID"),
 
   // Validate startDate
-  check("startDate")
-    .optional()
-    .isISO8601()
-    .withMessage("Start date must be a valid ISO8601 date"),
+  //   check("startDate")
+  //     .optional()
+  //     .isISO8601()
+  //     .withMessage("Start date must be a valid ISO8601 date"),
 
   // Validate endDate
-  check("endDate")
-    .optional()
-    .isISO8601()
-    .withMessage("End date must be a valid ISO8601 date"),
+  //   check("endDate")
+  //     .optional()
+  //     .isISO8601()
+  //     .withMessage("End date must be a valid ISO8601 date"),
 
   // Validate status
-  check("status")
-    .optional()
-    .isIn(["PENDING", "COMPLETED", "FAILED"])
-    .withMessage("Status must be one of PENDING, COMPLETED, or FAILED"),
+  //   check("status")
+  //     .optional()
+  //     .isIn(["PENDING", "COMPLETED", "FAILED"])
+  //     .withMessage("Status must be one of PENDING, COMPLETED, or FAILED"),
 ];

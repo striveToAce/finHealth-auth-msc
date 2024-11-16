@@ -9,21 +9,24 @@ import {
   validateTransactionCreation,
   validateTransactionListPayload,
 } from "../validators/transaction";
+import { validateRequest } from "../middlewares/validateRequest";
 
 const router = Router();
 
 router.post(
   "/transact",
-  validateTransactionListPayload,
-  authMiddleware,
-  makeTransaction
-);
-router.post("/getTransactions", authMiddleware, getTransactionList);
-router.post(
-  "/getTransaction",
   authMiddleware,
   validateTransactionCreation,
-  getOneTransaction
+  validateRequest,
+  makeTransaction
 );
+router.post(
+  "/getTransactions",
+  authMiddleware,
+  validateTransactionListPayload,
+  validateRequest,
+  getTransactionList
+);
+router.post("/getTransaction", authMiddleware, getOneTransaction);
 
 export { router as transactRoutes };

@@ -4,9 +4,15 @@ import { AuthenticatedRequest } from "../types/auth";
 import { TransactService } from "../services/transactService";
 
 const transactService = new TransactService();
-export const makeTransaction = async (req: Request, res: Response) => {
+export const makeTransaction = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   try {
-    const transaction = await transactService.makeTransaction(req.body);
+    const transaction = await transactService.makeTransaction({
+      ...req.body,
+      userId: req.user.id,
+    });
     return ResponseHandler.success(res, transaction, "transaction done:)");
   } catch (error) {
     return ResponseHandler.error(res, error, "transaction failed");
