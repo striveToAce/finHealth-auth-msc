@@ -78,7 +78,42 @@ export class TransactService {
           ...(payload.startDate ? { gte: new Date(payload.startDate) } : {}),
           ...(payload.endDate ? { lte: new Date(payload.endDate) } : {}),
         },
+        ...(payload.search
+          ? {
+              title: {
+                contains: payload.search,
+                mode: "insensitive", // Case-insensitive search
+              },
+            }
+          : {}),
+        ...(payload.transactionType === "DEBIT"
+          ? {
+              isCredit: false,
+            }
+          : payload.transactionType === "CREDIT"
+          ? { isCredit: true }
+          : {}),
       };
+
+      let orderBy: { amount?: "desc" | "asc"; createdAt?: "desc" | "asc" } = {};
+      if (payload.sortBy) {
+        switch (payload.sortBy) {
+          case "amount-asc":
+            orderBy = { amount: "asc" };
+            break;
+          case "amount-desc":
+            orderBy = { amount: "desc" };
+            break;
+          case "date-asc":
+            orderBy = { createdAt: "asc" };
+            break;
+          case "date-desc":
+            orderBy = { createdAt: "desc" };
+            break;
+          default:
+            orderBy = { createdAt: "desc" }; // No sorting applied
+        }
+      }
 
       // Fetch transactions and count using Promise.all
       // This is done to avoid a race condition where the count is fetched before the transactions
@@ -91,7 +126,7 @@ export class TransactService {
           skip,
           take,
           include: { user: true },
-          orderBy: { createdAt: "desc" },
+          orderBy,
         }),
         // Get total count of transactions with the given query parameters
         prisma.transaction.count({ where: query }),

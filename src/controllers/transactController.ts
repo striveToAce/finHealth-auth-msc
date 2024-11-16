@@ -11,7 +11,7 @@ export const makeTransaction = async (
   try {
     const transaction = await transactService.makeTransaction({
       ...req.body,
-      userId: req.user.id,
+      userId: req.user.userId,
     });
     return ResponseHandler.success(res, transaction, "transaction done:)");
   } catch (error) {
@@ -34,9 +34,10 @@ export const getTransactionList = async (
   res: Response
 ) => {
   try {
-    const transactionData = await transactService.getTransactionsService(
-      req.body
-    );
+    const transactionData = await transactService.getTransactionsService({
+      ...req.body,
+      userId: req.user.userId,
+    });
     return ResponseHandler.success(res, transactionData, "transactions :)");
   } catch (error) {
     return ResponseHandler.error(res, error, "fetching data failed:(");
