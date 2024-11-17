@@ -85,6 +85,21 @@ model UserLoan {
   reason      String?            
   userId      String
   user        User               @relation(fields: [userId], references: [id],onDelete: Cascade)
+  emis        RecurringTransaction[]
 
   @@index([userId]) // Optional: For optimized queries by userId
+}
+
+model RecurringTransaction {
+  id          String             @id @default(uuid())
+  title       String                 
+  amount      Float              @default(0)
+  isCredit    Boolean
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt             
+  status      TransactionStatus  @default(PENDING)
+  reason      String? 
+  loanId      String           
+  loanInfo    UserLoan              @relation(fields: [loanId], references: [id],onDelete: Cascade)
+  @@index([loanId]) // Optional: For optimized queries by userId
 }

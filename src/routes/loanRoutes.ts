@@ -20,13 +20,13 @@ router.post(
   validateRequest,
   createUpdateLoan
 );
+router.post("/getLoanInfo", authMiddleware, getLoanInfo);
 router.post(
-  "/getLoanInfo",
+  "/getAllLoans",
   authMiddleware,
   validateLoansListPayload,
   validateRequest,
-  getLoanInfo
+  getLoansList
 );
-router.post("/getAllLoans", authMiddleware, getLoansList);
 
 export { router as loanRoutes };
