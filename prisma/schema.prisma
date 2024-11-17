@@ -86,6 +86,8 @@ model UserLoan {
   userId      String
   user        User               @relation(fields: [userId], references: [id],onDelete: Cascade)
   emis        RecurringTransaction[]
+  emiMonth    Int @default(1)
+  emiDay      Int @default(1)
 
   @@index([userId]) // Optional: For optimized queries by userId
 }
