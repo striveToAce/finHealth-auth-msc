@@ -1,6 +1,15 @@
-import { PrismaClient } from "@prisma/client";
-import { ITransaction, ITransactionListPayload } from "../types/transaction";
-import { ILoan, ILoanListPayload } from "../types/loan";
+import {
+  PrismaClient,
+  TransactionStatus,
+  UserLoanStatus,
+} from "@prisma/client";
+import {
+  ILoan,
+  ILoanListPayload,
+  IPayEMI,
+  IRecurringTransaction,
+} from "../types/loan";
+import moment from "moment";
 
 const prisma = new PrismaClient();
 export class LoanService {
@@ -19,6 +28,16 @@ export class LoanService {
             id: payload.id,
           },
           data: payload,
+        });
+        await prisma.recurringTransaction.create({
+          data: {
+            title: `Pending EMI ${payload.emiMonth} - ${payload.title}`,
+            amount: payload.emiAmount,
+            isCredit: false,
+            loanId: payload.id,
+            status: TransactionStatus.PENDING,
+            userId: payload.userId,
+          },
         });
         return { message: "Loan info updated successfully" };
       } else {
@@ -123,6 +142,99 @@ export class LoanService {
     } catch (error: any) {
       // Catch any errors that occur and throw a new error with a descriptive message
       throw new Error("Error in fetching loan info: " + error?.message);
+    }
+  }
+
+  async getAllEmis(payload: ILoanListPayload) {
+    try {
+      const skip =
+        (parseInt(payload.page + "") - 1) * parseInt(payload.pageSize + "");
+      // The take value is set to the page size
+      const take = parseInt(payload.pageSize + "");
+      const query = {
+        status: TransactionStatus.PENDING,
+        userId: payload.userId,
+      };
+
+      const [rows, count] = await Promise.all([
+        // Fetch the loans with the given query parameters
+        prisma.recurringTransaction.findMany({
+          where: query,
+          take,
+          skip,
+          include: { loanInfo: true },
+          orderBy: {
+            createdAt: "desc",
+          },
+        }),
+        prisma.recurringTransaction.count({ where: query }),
+      ]);
+
+      return { count, rows };
+    } catch (error: any) {
+      // Catch any errors that occur and throw a new error with a descriptive message
+      throw new Error("Error in fetching emi info: " + error?.message);
+    }
+  }
+  async payEmiService(payload: IPayEMI) {
+    try {
+      const loanInfo = await prisma.userLoan.findUnique({
+        where: { id: payload.loanId, status: "ACTIVE" },
+      });
+      if (!loanInfo) {
+        throw new Error("active Loan not found");
+      }
+      const emiAmount = loanInfo.emiAmount;
+      await prisma.recurringTransaction.update({
+        where: { id: payload.emiId },
+        data: {
+          status: TransactionStatus.COMPLETED,
+          updatedAt: moment().format("DD-MM-YYYY"),
+          reason: payload.reason,
+        },
+      });
+      await prisma.userLoan.update({
+        where: { id: payload.loanId },
+        data: {
+          emiQty: loanInfo.emiQty - 1,
+          status:
+            loanInfo.emiQty - 1 === 0
+              ? UserLoanStatus.CLOSED
+              : UserLoanStatus.ACTIVE,
+        },
+      });
+
+      await prisma.transaction.create({
+        data: {
+          title: `Paid EMI ${payload.month} - ${loanInfo.title}`,
+          amount: emiAmount,
+          isCredit: false,
+          status: TransactionStatus.COMPLETED,
+          description: "",
+          label: "EMI",
+          reason: payload.reason,
+          userId: payload.userId,
+        },
+      });
+
+      if (loanInfo.emiQty - 1) {
+        const emiCreatePayload: IRecurringTransaction = {
+          title: `Pending EMI ${payload.month} - ${loanInfo.title}`,
+          amount: emiAmount,
+          isCredit: false,
+          loanId: payload.loanId,
+          month: payload.month + 1 > 12 ? 1 : payload.month + 1,
+          status: TransactionStatus.PENDING,
+          userId: payload.userId,
+        };
+        await prisma.recurringTransaction.create({
+          data: emiCreatePayload,
+        });
+      }
+
+      return { message: "EMI paid successfully" };
+    } catch (err) {
+      throw err;
     }
   }
 }

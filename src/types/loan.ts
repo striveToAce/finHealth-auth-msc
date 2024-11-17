@@ -1,3 +1,5 @@
+import { TransactionStatus } from "@prisma/client";
+
 export interface ICreateLoan {
   id?: string; // UUID
   title: string; // Max 100 characters
@@ -30,6 +32,9 @@ export interface ILoan {
   emiQty: number;           
   lender: string; // lender info
   reason?: string; // Optional, max 200 characters
+  emiDay:number;
+  emiMonth:number;
+  emiAmount:number;
   userId: string; // UUID of the user
 }
 
@@ -41,4 +46,41 @@ export interface ILoanListPayload {
   sortBy?: "date-asc" | "date-desc" | "amount-desc" | "amount-asc" | "";
   search?: string;
   userId?: string;
+}
+
+export interface IPayEMI{
+  loanId: string;
+  amount: number;
+  month:number;
+  reason?:string; 
+  userId:string
+  emiId:string
+}
+export interface IPayEMIPayload{
+  loanId: string;
+  amount: number;
+  month:number;
+  reason?:string; 
+  userId?:string
+}
+
+export interface IRecurringTransaction{
+  id?:string;
+  title: string;
+  amount: number;
+  isCredit: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+  status: TransactionStatus;
+  reason?: string;
+  month:number;
+  loanId:string;
+  userId: string;
+}
+
+export interface IEMIListing{
+  page:number;
+  pageSize:number;
+  sortBy?: "date-asc" | "date-desc" | "amount-desc" | "amount-asc" | "";
+  userId:string
 }

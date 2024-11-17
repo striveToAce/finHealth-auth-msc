@@ -31,6 +31,7 @@ model User {
   RefreshToken RefreshToken[]
   transactions Transaction[]
   loans UserLoan[]
+  recurringTransactions RecurringTransaction[]
 }
 
 model RefreshToken {
@@ -88,6 +89,7 @@ model UserLoan {
   emis        RecurringTransaction[]
   emiMonth    Int @default(1)
   emiDay      Int @default(1)
+  emiAmount   Float @default(0)
 
   @@index([userId]) // Optional: For optimized queries by userId
 }
@@ -101,7 +103,10 @@ model RecurringTransaction {
   updatedAt   DateTime           @updatedAt             
   status      TransactionStatus  @default(PENDING)
   reason      String? 
-  loanId      String           
+  loanId      String   
+  month    Int @default(1)       
   loanInfo    UserLoan              @relation(fields: [loanId], references: [id],onDelete: Cascade)
+  userId      String
+  user        User               @relation(fields: [userId], references: [id],onDelete: Cascade)
   @@index([loanId]) // Optional: For optimized queries by userId
 }

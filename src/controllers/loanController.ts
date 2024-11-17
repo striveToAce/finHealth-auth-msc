@@ -29,7 +29,6 @@ export const getLoanInfo = async (req: Request, res: Response) => {
   }
 };
 
-
 export const getLoansList = async (
   req: AuthenticatedRequest,
   res: Response
@@ -42,5 +41,29 @@ export const getLoansList = async (
     return ResponseHandler.success(res, transactionData, "loans :)");
   } catch (error) {
     return ResponseHandler.error(res, error, "fetching data failed:(");
+  }
+};
+
+export const getAllEmis = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const transactionData = await loanService.getAllEmis({
+      ...req.body,
+      userId: req.user.userId,
+    });
+    return ResponseHandler.success(res, transactionData, "emis fetched :)");
+  } catch (error) {
+    return ResponseHandler.error(res, error, "fetching data failed:(");
+  }
+};
+
+export const payEmi = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const transactionData = await loanService.payEmiService({
+      ...req.body,
+      userId: req.user.userId,
+    });
+    return ResponseHandler.success(res, transactionData, "emi paid :)");
+  } catch (error) {
+    return ResponseHandler.error(res, error, "error during emi payment:(");
   }
 };

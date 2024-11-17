@@ -1,4 +1,4 @@
-import { check } from "express-validator";
+import { body, check } from "express-validator";
 
 export const validateLoanCreation = [
   check("id")
@@ -53,6 +53,25 @@ export const validateLoanCreation = [
     .isLength({ max: 200 })
     .withMessage("Reason cannot exceed 200 characters"),
 ];
+
+
+export const validatePayEMIPayload = [
+  body('loanId')
+    .isString().withMessage('loanId must be a string')
+    .notEmpty().withMessage('loanId is required'),
+  
+  body('amount')
+    .isNumeric().withMessage('amount must be a number')
+    .custom(value => value > 0).withMessage('amount must be greater than 0'),
+  
+  body('month')
+    .isInt({ min: 1, max: 12 }).withMessage('month must be an integer between 1 and 12'),
+  
+  body('reason')
+    .optional()
+    .isString().withMessage('reason must be a string'),
+];
+
 
 export const validateLoansListPayload = [
   // Validate page
