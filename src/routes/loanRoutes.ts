@@ -33,7 +33,7 @@ router.post(
 );
 
 router.post(
-  "getEMIList",
+  "/getEMIList",
   authMiddleware,
   getAllEmis
 );

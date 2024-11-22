@@ -4,6 +4,7 @@ import {
   UserLoanStatus,
 } from "@prisma/client";
 import {
+  IEMIListing,
   ILoan,
   ILoanListPayload,
   IPayEMI,
@@ -29,21 +30,40 @@ export class LoanService {
           },
           data: payload,
         });
+        const existEmiInfo = await prisma.recurringTransaction.findMany({
+          where: {
+            loanId: payload.id,
+            status: TransactionStatus.PENDING,
+          },
+        });
+        if (existEmiInfo && existEmiInfo.length) {
+          await prisma.recurringTransaction.updateMany({
+            where: {
+              loanId: payload.id,
+              status: TransactionStatus.PENDING,
+            },
+            data: {
+              title: `Pending EMI ${payload.emiMonth} - ${payload.title}`,
+              amount: payload.emiAmount,
+              isCredit: false,
+            },
+          });
+        }
+        return { message: "Loan info updated successfully" };
+      } else {
+        // Create case: create a new loan record with the provided data
+        const createdLoan = await prisma.userLoan.create({
+          data: payload,
+        });
         await prisma.recurringTransaction.create({
           data: {
             title: `Pending EMI ${payload.emiMonth} - ${payload.title}`,
             amount: payload.emiAmount,
             isCredit: false,
-            loanId: payload.id,
+            loanId: createdLoan.id,
             status: TransactionStatus.PENDING,
             userId: payload.userId,
           },
-        });
-        return { message: "Loan info updated successfully" };
-      } else {
-        // Create case: create a new loan record with the provided data
-        await prisma.userLoan.create({
-          data: payload,
         });
         return { message: "Loan info created successfully" };
       }
@@ -145,7 +165,7 @@ export class LoanService {
     }
   }
 
-  async getAllEmis(payload: ILoanListPayload) {
+  async getAllEmis(payload: IEMIListing) {
     try {
       const skip =
         (parseInt(payload.page + "") - 1) * parseInt(payload.pageSize + "");
